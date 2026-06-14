@@ -1,0 +1,83 @@
+﻿@model WaterTreatmentSystem.Models.PlantComponent
+
+@{
+    ViewData["Title"] = "تعديل بيانات المكون التشغيلي";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
+
+                <div class="mb-4 text-center">
+                    <div class="icon-shape bg-soft-warning text-warning rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="bi bi-pencil-square fs-3"></i>
+                    </div>
+                    <h2 class="fw-bold text-dark mb-1">تعديل بيانات الفلتر / الجزء المستهلك</h2>
+                    <p class="text-muted small">المحطة: <strong class="text-primary">@ViewBag.PlantName</strong></p>
+                </div>
+
+                <form asp-action="EditComponent" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3 small fw-bold"></div>
+
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="PlantId" />
+
+                    <div class="row g-4">
+
+                        <div class="col-12">
+                            <label asp-for="ComponentName" class="form-label fw-semibold text-secondary">اسم الفلتر / الجزء المستهلك</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted"><i class="bi bi-tag"></i></span>
+                                <input asp-for="ComponentName" class="form-control bg-light border-start-0 rounded-end-3" />
+                            </div>
+                            <span asp-validation-for="ComponentName" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="LifetimeDays" class="form-label fw-semibold text-secondary">العمر الافتراضي التشغيلي (بالأيام)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted"><i class="bi bi-hourglass-split"></i></span>
+                                <input asp-for="LifetimeDays" class="form-control bg-light border-start-0 rounded-end-3" type="number" />
+                            </div>
+                            <span asp-validation-for="LifetimeDays" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="LastReplacementDate" class="form-label fw-semibold text-secondary">تاريخ تركيب / آخر تبديل</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3 text-muted"><i class="bi bi-calendar-check"></i></span>
+                                <input asp-for="LastReplacementDate" class="form-control bg-light border-start-0 rounded-end-3" type="date" />
+                            </div>
+                            <span asp-validation-for="LastReplacementDate" class="text-danger small mt-1 d-block"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex gap-2 mt-5">
+                        <button type="submit" class="btn btn-warning text-dark rounded-pill px-4 py-2 flex-grow-1 fw-bold shadow-sm">
+                            <i class="bi bi-check-all me-1"></i> حفظ تعديلات المكون
+                        </button>
+                        <a asp-action="Details" asp-route-id="@Model.PlantId" class="btn btn-light rounded-pill px-4 py-2 fw-semibold border">
+                            إلغاء التعديل
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-soft-warning {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

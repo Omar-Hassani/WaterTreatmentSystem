@@ -1,0 +1,407 @@
+﻿@model WaterTreatmentSystem.Models.Plant
+
+@{
+    ViewData["Title"] = $"لوحة تحكم | {Model.Name}";
+    var latestAnalysis = Model.QualityAnalyses.OrderByDescending(q => q.AnalysisDate).FirstOrDefault();
+}
+
+<div class="container-fluid px-4 py-4 mb-5">
+
+    <div class="d-flex flex-wrap justify-content-between align-items-center p-4 bg-white rounded-4 shadow-sm border border-light-subtle mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="p-3 bg-soft-primary text-primary rounded-4 fs-3">
+                <i class="bi bi-water"></i>
+            </div>
+            <div>
+                <div class="d-flex align-items-center gap-2">
+                    <h1 class="h3 text-dark fw-bold mb-0">@Model.Name</h1>
+                    <span class="badge @(Model.PlantType == "RO" ? "bg-primary" : "bg-info") text-white rounded-pill px-3 py-1 small-badge">
+                        نظام @Model.PlantType
+                    </span>
+                </div>
+                <p class="text-muted small mb-0 mt-1"><i class="bi bi-geo-alt me-1"></i> @Model.Location | تاريخ التأسيس: @Model.InstallationDate.ToShortDateString()</p>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 mt-md-0">
+            <a asp-action="Index" class="btn btn-outline-dark rounded-pill px-3 fw-semibold py-2">
+                <i class="bi bi-arrow-right me-1"></i> العودة للمحطات
+            </a>
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-light border rounded-pill px-3 fw-semibold py-2">
+                <i class="bi bi-pencil-square text-muted me-1"></i> تعديل البيانات
+            </a>
+            <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger rounded-pill px-3 fw-semibold py-2">
+                <i class="bi bi-trash me-1"></i> حذف المحطة
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted d-block small-title">كفاءة حجز الأملاح</span>
+                        <h3 class="fw-black text-dark mb-0 mt-1">@(latestAnalysis != null ? $"{latestAnalysis.SaltRejectionRate}%" : "N/A")</h3>
+                    </div>
+                    <div class="rounded-3 bg-soft-success p-3 text-success fs-4"><i class="bi bi-percent"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted d-block small-title">آخر ملوحة للمنتج</span>
+                        <h3 class="fw-black text-dark mb-0 mt-1">@(latestAnalysis != null ? $"{latestAnalysis.TdsOutlet} ppm" : "N/A")</h3>
+                    </div>
+                    <div class="rounded-3 bg-soft-primary p-3 text-primary fs-4"><i class="bi bi-droplet-clean"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted d-block small-title">حالة سلامة المياه</span>
+                        <div class="mt-2">
+                            @if (latestAnalysis == null)
+                            {
+                                <span class="text-muted fw-bold">لا يوجد فحص</span>
+                            }
+                            else if (latestAnalysis.IsCompliant)
+                            {
+                                <span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i> مطابقة للمعايير</span>
+                            }
+                            else
+                            {
+                                <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill me-1"></i> خارج المواصفة!</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="rounded-3 p-3 fs-4 @(latestAnalysis != null && latestAnalysis.IsCompliant ? "bg-soft-success text-success" : "bg-soft-danger text-danger")">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <div class="card border-0 shadow-sm rounded-4 bg-white p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted d-block small-title">الفلاتر والأغشية</span>
+                        <div class="mt-2">
+                            @if (Model.Components.Any(c => DateTime.Today >= c.LastReplacementDate.AddDays(c.LifetimeDays)))
+                            {
+                                <span class="text-danger fw-bold animate-pulse"><i class="bi bi-tools me-1"></i> مطلوب تبديل فوري!</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted small fw-semibold">جميع الأجزاء تعمل بكفاءة</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="rounded-3 bg-soft-warning p-3 text-warning fs-4"><i class="bi bi-wrench-adjustable"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
+        <ul class="nav nav-pills custom-pills gap-2 border-bottom pb-3 mb-4" id="plantTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active rounded-pill fw-semibold px-4" id="quality-tab" data-bs-toggle="tab" data-bs-target="#quality" type="button" role="tab">
+                    <i class="bi bi-clipboard2-pulse me-1"></i> تحاليل جودة المياه وقراءات المختبر
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill fw-semibold px-4" id="components-tab" data-bs-toggle="tab" data-bs-target="#components" type="button" role="tab">
+                    <i class="bi bi-cone-striped me-1"></i> الأعمار الافتراضية للفلاتر والمستهلكات
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link rounded-pill fw-semibold px-4" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab">
+                    <i class="bi bi-journal-text me-1"></i> سجل الصيانة والخدمات المنفذة
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="plantTabsContent">
+
+            <div class="tab-pane fade show active" id="quality" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">تاريخ الفحوصات المخبرية الدورية</h5>
+                    <a asp-controller="WaterQuality" asp-action="Create" asp-route-plantId="@Model.Id" class="btn btn-dark btn-sm rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> إضافة عينة مختبر جديدة
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle custom-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>تاريخ الفحص</th>
+                                <th>الملوحة الخام (Inlet)</th>
+                                <th>الملوحة المنتجة (Outlet)</th>
+                                <th>كفاءة الإزالة (Rejection)</th>
+                                <th>الحموضة (pH)</th>
+                                <th>العكارة (NTU)</th>
+                                <th>الحالة القياسية</th>
+                                <th class="text-center">العمليات الفنية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var analysis in Model.QualityAnalyses.OrderByDescending(a => a.AnalysisDate))
+                            {
+                                <tr>
+                                    <td class="fw-semibold text-dark">@analysis.AnalysisDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                    <td>@analysis.TdsInlet ppm</td>
+                                    <td>@analysis.TdsOutlet ppm</td>
+                                    <td class="fw-bold text-primary">@analysis.SaltRejectionRate%</td>
+                                    <td>@analysis.Ph</td>
+                                    <td>@analysis.Turbidity</td>
+                                    <td>
+                                        @if (analysis.IsCompliant)
+                                        {
+                                            <span class="badge bg-success rounded-pill px-2 py-1">مطابق للـ ISO</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger rounded-pill px-2 py-1">خارج المواصفة</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a asp-controller="WaterQuality" asp-action="Edit" asp-route-id="@analysis.Id" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 small-badge" title="تعديل قراءات العينة">
+                                                <i class="bi bi-pencil me-1"></i> تعديل
+                                            </a>
+
+                                            <form asp-controller="WaterQuality" asp-action="Delete" asp-route-id="@analysis.Id" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذه العينة المخبرية نهائياً؟');" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 small-badge" title="حذف العينة">
+                                                    <i class="bi bi-trash me-1"></i> حذف
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="components" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">مراقبة صلاحية الفلاتر والأغشية (Membranes)</h5>
+                    <a asp-action="CreateComponent" asp-route-plantId="@Model.Id" class="btn btn-dark btn-sm rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> ربط فلتر/جزء جديد
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle custom-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>اسم الفلتر / الجزء المستهلك</th>
+                                <th>العمر الافتراضي</th>
+                                <th>تاريخ آخر تبديل</th>
+                                <th>تاريخ التبديل القادم</th>
+                                <th>الأيام المتبقية</th>
+                                <th>حالة الأمان التشغيلية</th>
+                                <th class="text-center">العمليات الفنية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var component in Model.Components)
+                            {
+                                <tr>
+                                    <td class="fw-semibold text-dark">@component.ComponentName</td>
+                                    <td>@component.LifetimeDays يوم</td>
+                                    <td>@component.LastReplacementDate.ToShortDateString()</td>
+                                    <td class="fw-semibold">@component.NextReplacementDate.ToShortDateString()</td>
+                                    <td>
+                                        @if (component.DaysRemaining > 0)
+                                        {
+                                            <span class="text-success fw-bold">باقي @component.DaysRemaining يوم</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-danger fw-bold">منتهي منذ @Math.Abs(component.DaysRemaining) يوم</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (component.NeedsUrgentReplacement)
+                                        {
+                                            <span class="badge bg-danger text-white rounded-pill px-2 py-1 animate-pulse">تالف استبدل فوراً</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-soft text-success rounded-pill px-2 py-1">يعمل بحالة ممتازة</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a asp-action="EditComponent" asp-route-id="@component.Id" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 small-badge" title="تعديل بيانات الفلتر">
+                                                <i class="bi bi-pencil me-1"></i> تعديل
+                                            </a>
+
+                                            <form asp-action="DeleteComponent" asp-route-id="@component.Id" method="post" onsubmit="return confirm('هل أنت متأكد من حذف هذا الفلتر/المكون نهائياً من سجلات التتبع؟');" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 small-badge" title="حذف الفلتر">
+                                                    <i class="bi bi-trash me-1"></i> حذف
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="maintenance" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0">سجل عمليات الصيانة الفنية والوقائية المنفذة</h5>
+                    <a asp-controller="Plants" asp-action="CreateMaintenance" asp-route-plantId="@Model.Id" class="btn btn-dark btn-sm rounded-pill px-3 py-2 fw-semibold">
+                        <i class="bi bi-plus-circle me-1"></i> تدوين أمر صيانة جديد
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle custom-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>تاريخ العمل</th>
+                                <th>تفاصيل الخدمة والصيانة المنفذة</th>
+                                <th>التكلفة المالية</th>
+                                <th>المهندس/الفني المسؤول</th>
+                                <th class="text-center">العمليات الفنية</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in Model.MaintenanceLogs.OrderByDescending(l => l.MaintenanceDate))
+                            {
+                                <tr>
+                                    <td class="fw-semibold text-dark">@log.MaintenanceDate.ToShortDateString()</td>
+                                    <td class="text-muted" style="max-width: 400px;">@log.Description</td>
+                                    <td class="fw-bold text-dark">@log.Cost.ToString("C")</td>
+                                    <td><i class="bi bi-person me-1 small"></i> @log.TechnicianName</td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <a asp-controller="Plants" asp-action="EditMaintenance" asp-route-id="@log.Id" class="btn btn-sm btn-outline-warning rounded-pill px-2 py-1 small-badge" title="تعديل أمر الصيانة">
+                                                <i class="bi bi-pencil me-1"></i> تعديل
+                                            </a>
+
+                                            <form asp-controller="plants" asp-action="DeleteMaintenance" asp-route-id="@log.Id" method="post" onsubmit="return confirm('هل أنت متأكد من حذف أمر الصيانة هذا نهائياً؟');" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-2 py-1 small-badge" title="حذف الأمر">
+                                                    <i class="bi bi-trash me-1"></i> حذف
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* ✨ اللمسات المودرن الفاخرة للوحة التحكم */
+    .bg-soft-primary {
+        background-color: rgba(13, 110, 253, 0.06);
+    }
+
+    .bg-soft-success {
+        background-color: rgba(25, 135, 84, 0.08);
+    }
+
+    .bg-soft-danger {
+        background-color: rgba(220, 53, 69, 0.08);
+    }
+
+    .bg-soft-warning {
+        background-color: rgba(255, 193, 7, 0.08);
+    }
+
+    .small-badge {
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .small-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+
+    .fw-black {
+        font-weight: 900 !important;
+    }
+
+    /* أزرار التبويبات الكبسولية */
+    .custom-pills .nav-link {
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        margin-bottom: 5px;
+        transition: all 0.2s ease;
+    }
+
+        .custom-pills .nav-link.active {
+            background-color: #111111 !important;
+            color: #ffffff !important;
+            border-color: #111111;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .custom-pills .nav-link:hover:not(.active) {
+            background-color: #e9ecef;
+            color: #000000;
+        }
+
+    /* تنسيق الجداول الفخم */
+    .custom-table {
+        font-size: 0.92rem;
+    }
+
+        .custom-table thead th {
+            font-weight: 700;
+            color: #495057;
+            padding: 14px;
+            border-bottom: 2px solid #edeff2;
+        }
+
+        .custom-table tbody td {
+            padding: 14px;
+            color: #495057;
+            border-bottom: 1px solid #f2f4f7;
+        }
+
+    .transition-smooth {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.6;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+</style>

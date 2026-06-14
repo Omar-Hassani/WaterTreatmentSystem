@@ -1,0 +1,53 @@
+﻿@model WaterTreatmentSystem.Models.Plant
+
+@{
+    ViewData["Title"] = "تأكيد الحذف";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white text-center">
+
+                <div class="icon-shape bg-soft-danger text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
+                    <i class="bi bi-exclamation-triangle fs-2"></i>
+                </div>
+
+                <h3 class="fw-bold text-dark mb-2">هل أنت متأكد من الحذف؟</h3>
+                <p class="text-muted small px-3">
+                    تنبيه: حذف محطة <strong class="text-danger">"@Model.Name"</strong> سيؤدي إلى حذف جميع سجلات الفحوصات المخبرية وعمليات الصيانة المرتبطة بها نهائياً من قاعدة البيانات.
+                </p>
+
+                <div class="bg-light rounded-3 p-3 my-4 text-start">
+                    <div class="mb-1"><strong>اسم المحطة:</strong> <span class="text-secondary">@Model.Name</span></div>
+                    <div class="mb-1"><strong>الموقع:</strong> <span class="text-secondary">@Model.Location</span></div>
+                    <div><strong>نوع التكنولوجيا:</strong> <span class="badge bg-secondary rounded-pill">@Model.PlantType</span></div>
+                </div>
+
+                <form asp-action="Delete" method="post">
+                    <input type="hidden" asp-for="Id" />
+
+                    <div class="d-flex gap-2 w-100">
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 py-2 flex-grow-1 fw-bold shadow-sm transition-smooth">
+                            <i class="bi bi-trash me-1"></i> نعم، احذف المحطة
+                        </button>
+                        <a asp-action="Index" class="btn btn-light rounded-pill px-4 py-2 fw-semibold border flex-grow-1 transition-smooth">
+                            تراجع وإلغاء
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-soft-danger {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+
+    .transition-smooth {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+</style>

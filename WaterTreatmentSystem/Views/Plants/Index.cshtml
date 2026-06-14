@@ -1,0 +1,200 @@
+﻿@model IEnumerable<WaterTreatmentSystem.Models.Plant>
+
+@{
+    ViewData["Title"] = "إدارة محطات معالجة المياه";
+}
+
+<div class="hero-section py-4 mb-4 position-relative overflow-hidden border-bottom border-light bg-white">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center position-relative z-3">
+        <div>
+            <span class="badge bg-soft-primary text-primary rounded-pill px-3 py-2 fw-bold mb-2">
+                <i class="bi bi-droplet-half me-1"></i> الأنظمة الهندسية الذكية
+            </span>
+            <h1 class="h2 text-dark fw-bold mb-1 tracking-tight">إدارة محطات المعالجة والتحلية</h1>
+            <p class="text-muted small mb-0">تتبع الكفاءة التشغيلية، قراءات المختبر، وجداول الصيانة الوقائية.</p>
+        </div>
+        <div>
+            <a asp-action="Create" class="btn btn-dark rounded-pill px-4 py-2 fw-semibold shadow-sm transition-smooth">
+                <i class="bi bi-plus-circle me-1"></i> إضافة محطة جديدة
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid px-4 mb-5">
+    <div class="row g-4">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var plant in Model)
+            {
+                // جلب آخر تحليل للمحطة لمعرفة جودة المياه الحالية
+                var latestAnalysis = plant.QualityAnalyses.OrderByDescending(q => q.AnalysisDate).FirstOrDefault();
+                // التحقق من وجود مستهلكات تحتاج تبديل فوري
+                var hasUrgentComponents = plant.Components.Any(c => DateTime.Today >= c.LastReplacementDate.AddDays(c.LifetimeDays));
+
+                <div class="col-xl-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4 bg-white transition-smooth premium-plant-card">
+                        <div class="card-body p-4 d-flex flex-column">
+
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold text-dark mb-1">@plant.Name</h5>
+                                    <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i> @plant.Location</span>
+                                </div>
+                                <span class="badge @(plant.PlantType == "RO" ? "bg-primary" : "bg-info") text-white px-3 py-2 rounded-pill fw-bold">
+                                    نظام @plant.PlantType
+                                </span>
+                            </div>
+
+                            <hr class="border-light my-2">
+
+                            <div class="row my-3 g-2">
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded-3 text-center">
+                                        <span class="text-muted d-block small-title">الطاقة الإنتاجية</span>
+                                        <strong class="text-dark">@plant.Capacity م³/يوم</strong>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="p-2 bg-light rounded-3 text-center">
+                                        <span class="text-muted d-block small-title">كفاءة الحجز الحالية</span>
+                                        <strong class="text-dark">
+                                            @(latestAnalysis != null ? $"{latestAnalysis.SaltRejectionRate}%" : "لا يوجد تحليل")
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-2 flex-grow-1">
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="me-2 small-title">حالة جودة المياه:</span>
+                                    @if (latestAnalysis == null)
+                                    {
+                                        <span class="badge bg-secondary rounded-pill text-white small-badge">ننتظر عينة</span>
+                                    }
+                                    else if (latestAnalysis.IsCompliant)
+                                    {
+                                        <span class="badge bg-success-soft text-success rounded-pill small-badge">
+                                            <i class="bi bi-check-circle-fill me-1"></i> مطابق للمواصفات
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-soft text-danger rounded-pill small-badge">
+                                            <i class="bi bi-exclamation-triangle-fill me-1"></i> خلل في الجودة (TDS!)
+                                        </span>
+                                    }
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2 small-title">قطع الغيار والفلاتر:</span>
+                                    @if (hasUrgentComponents)
+                                    {
+                                        <span class="badge bg-danger text-white rounded-pill small-badge animate-pulse">
+                                            <i class="bi bi-tools me-1"></i> صيانة حرجة مطلوبة
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-light text-success rounded-pill small-badge">
+                                            <i class="bi bi-shield-check me-1"></i> جميع الأجزاء سليمة
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4 pt-3 border-top border-light">
+                                <a asp-action="Details" asp-route-id="@plant.Id" class="btn btn-outline-dark rounded-pill btn-sm flex-grow-1 fw-semibold py-2">
+                                    <i class="bi bi-eye me-1"></i> لوحة التحكم بالتفاصيل
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@plant.Id" class="btn btn-light rounded-circle btn-sm p-2 d-inline-flex align-items-center justify-content-center" style="width:38px; height:38px;" title="تعديل">
+                                    <i class="bi bi-pencil-square text-muted"></i>
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@plant.Id" class="btn btn-light rounded-circle btn-sm p-2 d-inline-flex align-items-center justify-content-center" style="width:38px; height:38px;" title="حذف">
+                                    <i class="bi bi-trash text-danger"></i>
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5 my-5">
+                <div class="empty-icon-wrap mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle">
+                    <i class="bi bi-droplet text-muted display-4"></i>
+                </div>
+                <h4 class="text-dark fw-bold">لا توجد محطات مسجلة حتى الآن</h4>
+                <p class="text-muted max-w-md mx-auto fs-6">ابدأ بإضافة أول محطة معالجة مياه لبدء المراقبة والتحاليل المخبرية.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    /* ✨ لمسات تنسيق فريدة لواجهة المحطات */
+    .bg-soft-primary {
+        background-color: rgba(13, 110, 253, 0.06);
+    }
+
+    .bg-success-soft {
+        background-color: rgba(25, 135, 84, 0.1);
+    }
+
+    .bg-danger-soft {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+
+    .small-badge {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+        font-weight: 600;
+    }
+
+    .small-title {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .premium-plant-card {
+        border: 1px solid #f1f1f4 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01) !important;
+    }
+
+        .premium-plant-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04) !important;
+            border-color: #dee2e6 !important;
+        }
+
+    .transition-smooth {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .empty-icon-wrap {
+        width: 90px;
+        height: 90px;
+        background-color: #f8f9fa;
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.7;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+</style>
